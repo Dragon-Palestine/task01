@@ -91,6 +91,15 @@ const HomePage = React.memo(() => {
 
   const isInitialLoading = useInitialLoading();
 
+  // حالة محلية لمحاكاة تأخير الـ API عند البحث أو الجلب
+  const [isSimulating, setIsSimulating] = useState(false);
+
+  useEffect(() => {
+    setIsSimulating(true);
+    const timer = setTimeout(() => setIsSimulating(false), 500);
+    return () => clearTimeout(timer);
+  }, [filters, paginationInfo.currentPage]);
+
   const [generateCount, setGenerateCount] = useState(10);
 
   // Memoized computed values moved up to be used by handlers
@@ -109,7 +118,9 @@ const HomePage = React.memo(() => {
     async (formData) => {
       if (editingEmployee) {
         // Ensure the ID is attached to the form data for the reducer to find the match
-        await dispatch(updateEmployeeAsync({ ...formData, id: editingEmployee.id }));
+        await dispatch(
+          updateEmployeeAsync({ ...formData, id: editingEmployee.id }),
+        );
       } else {
         await dispatch(addEmployeeAsync(formData));
       }
@@ -198,7 +209,7 @@ const HomePage = React.memo(() => {
   );
 
   // Unified skeleton display condition
-  const shouldShowSkeleton = isInitialLoading;
+  const shouldShowSkeleton = isInitialLoading || isSimulating;
 
   return (
     <div className="home-page">

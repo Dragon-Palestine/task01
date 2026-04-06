@@ -1,21 +1,39 @@
-import React, { useMemo } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import React, { useMemo, useState, useEffect } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { selectEmployeesData, selectEmployeesState } from "../features/employees/employeesSlice";
-import { Link } from "react-router-dom";
+import {
+  selectEmployeesData,
+  selectEmployeesState,
+} from "../features/employees/employeesSlice";
+import LoadingSpinner from "../components/LoadingSpinner";
 
 const EmployeeProfile = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const data = useSelector(selectEmployeesData);
   const { isPageLoading, isMutating } = useSelector(selectEmployeesState);
-  const isLoading = isPageLoading || isMutating;
+
+  // محاكاة تأخير جلب بيانات الموظف
+  const [isSimulating, setIsSimulating] = useState(false);
+
+  useEffect(() => {
+    setIsSimulating(true);
+    const timer = setTimeout(() => setIsSimulating(false), 500);
+    return () => clearTimeout(timer);
+  }, [id]);
+
+  const isLoading = isPageLoading || isMutating || isSimulating;
 
   // Find employee with ID type compatibility check
   const employee = useMemo(() => {
     if (!data || data.length === 0) return null;
     return data.find((emp) => String(emp.id) === String(id));
   }, [data, id]);
+
+  // عرض شاشة التحميل أثناء المحاكاة أو الجلب الحقيقي
+  if (isLoading) {
+    return <LoadingSpinner message="جاري جلب بيانات الموظف..." />;
+  }
 
   // Prevent 404 from appearing during initial data loading
   if (!employee && !isLoading) {

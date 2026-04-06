@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { useEmployeeContext } from "../context/EmployeeContext";
 import { useTheme } from "../context/ThemeContext";
 import { useEmployeeFilters } from "../hooks/useEmployeeFilters";
@@ -9,6 +9,7 @@ import Pagination from "../components/Pagination";
 import SkeletonLoader from "../components/SkeletonLoader";
 import Modal from "../components/Modal";
 import EmployeeForm from "../components/EmployeeForm";
+import LoadingSpinner from "../components/LoadingSpinner";
 import { MAX_GENERATE_COUNT, ERROR_MESSAGES } from "../constants";
 
 const HomePage = () => {
@@ -42,6 +43,8 @@ const HomePage = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isPreparingModal, setIsPreparingModal] = useState(false);
   const [generateCount, setGenerateCount] = useState(10);
 
   const handleAddEmployee = useCallback(
@@ -72,18 +75,34 @@ const HomePage = () => {
   );
 
   const handleEditEmployee = useCallback((employee) => {
-    setEditingEmployee(employee);
-    setShowModal(true);
+    setIsPreparingModal(true);
+    setTimeout(() => {
+      setEditingEmployee(employee);
+      setShowModal(true);
+      setIsPreparingModal(false);
+    }, 700);
   }, []);
 
   const handleAddNewEmployee = useCallback(() => {
-    setEditingEmployee(null);
-    setShowModal(true);
+    setIsPreparingModal(true);
+    setTimeout(() => {
+      setEditingEmployee(null);
+      setShowModal(true);
+      setIsPreparingModal(false);
+    }, 700);
   }, []);
 
   const handleCloseModal = useCallback(() => {
     setShowModal(false);
     setEditingEmployee(null);
+  }, []);
+
+  useEffect(() => {
+    const initialLoadTimer = setTimeout(() => {
+      setIsInitialLoading(false);
+    }, 800);
+
+    return () => clearTimeout(initialLoadTimer);
   }, []);
 
   const handleDeleteEmployee = useCallback(
@@ -127,6 +146,18 @@ const HomePage = () => {
     generateEmployees(count);
     setIsLoading(false);
   }, [generateCount, generateEmployees]);
+
+  if (isInitialLoading || isPreparingModal) {
+    return (
+      <div className="page-loader">
+        <LoadingSpinner
+          message={
+            isInitialLoading ? "Loading employees..." : "Preparing data..."
+          }
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="home-page">

@@ -3,11 +3,14 @@ import React, { memo } from "react";
 const FilterBar = memo(
   ({
     searchTerm,
-    setSearchTerm,
+    onSearchChange,
     departmentFilter,
-    setDepartmentFilter,
+    onDepartmentChange,
+    statusFilter,
+    onStatusChange,
     departments,
     isSearchDebouncing,
+    onClearFilters,
   }) => {
     return (
       <div className="filter-bar">
@@ -16,7 +19,7 @@ const FilterBar = memo(
             type="text"
             placeholder="Search by name or email..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => onSearchChange(e.target.value)}
             className={`search-input ${isSearchDebouncing ? "searching" : ""}`}
           />
           {isSearchDebouncing && (
@@ -28,7 +31,7 @@ const FilterBar = memo(
         <div className="filter-container">
           <select
             value={departmentFilter}
-            onChange={(e) => setDepartmentFilter(e.target.value)}
+            onChange={(e) => onDepartmentChange(e.target.value)}
             className="department-filter"
           >
             <option value="">All Departments</option>
@@ -38,6 +41,23 @@ const FilterBar = memo(
               </option>
             ))}
           </select>
+          <select
+            value={statusFilter}
+            onChange={(e) => onStatusChange(e.target.value)}
+            className="status-filter"
+          >
+            <option value="">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+          {(searchTerm || departmentFilter || statusFilter) && (
+            <button
+              className="btn btn-secondary clear-filters-btn"
+              onClick={onClearFilters}
+            >
+              Clear Filters
+            </button>
+          )}
         </div>
       </div>
     );

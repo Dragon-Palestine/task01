@@ -5,8 +5,12 @@ export const API_BASE_URL =
   "http://localhost:3001/api";
 
 // Pagination Constants
-export const ITEMS_PER_PAGE = 5;
-export const MAX_GENERATE_COUNT = 10000;
+export const PAGINATION_CONFIG = {
+  ITEMS_PER_PAGE: 5,
+  MAX_GENERATE_COUNT: 10000,
+};
+export const ITEMS_PER_PAGE = PAGINATION_CONFIG.ITEMS_PER_PAGE;
+export const MAX_GENERATE_COUNT = PAGINATION_CONFIG.MAX_GENERATE_COUNT;
 
 // Validation Constants
 export const VALIDATION_RULES = {
@@ -42,6 +46,7 @@ export const API_SIMULATION_DELAYS = {
   GENERATE: 500,
   INITIAL_LOAD: 500,
   MODAL_PREPARE: 500,
+  PAGE_CHANGE: 500,
 };
 
 // Loading Messages

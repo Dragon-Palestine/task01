@@ -1,16 +1,13 @@
 import React, { useState, useCallback } from "react";
 import {
-  simulateApiCall,
   confirmDelete,
   confirmDeleteAll,
   showAlert,
-  withLoading,
-  prepareModal,
 } from "../utils/apiUtils";
 import {
-  API_SIMULATION_DELAYS,
   MAX_GENERATE_COUNT,
   ERROR_MESSAGES,
+  API_SIMULATION_DELAYS,
 } from "../constants";
 
 // Custom hook for employee operations
@@ -19,20 +16,14 @@ export const useEmployeeOperations = (operations) => {
 
   const addEmployee = useCallback(
     async (employeeData) => {
-      await withLoading(setIsLoading, async () => {
-        await simulateApiCall();
-        operations.addEmployee(employeeData);
-      });
+      await operations.addEmployee(employeeData);
     },
     [operations],
   );
 
   const updateEmployee = useCallback(
     async (employeeData) => {
-      await withLoading(setIsLoading, async () => {
-        await simulateApiCall();
-        operations.updateEmployee(employeeData);
-      });
+      await operations.updateEmployee(employeeData);
     },
     [operations],
   );
@@ -40,10 +31,7 @@ export const useEmployeeOperations = (operations) => {
   const deleteEmployee = useCallback(
     async (id) => {
       if (confirmDelete("Are you sure you want to delete this employee?")) {
-        await withLoading(setIsLoading, async () => {
-          await simulateApiCall();
-          operations.deleteEmployee(id);
-        });
+        await operations.deleteEmployee(id);
       }
     },
     [operations],
@@ -52,10 +40,7 @@ export const useEmployeeOperations = (operations) => {
   const deleteAllEmployees = useCallback(
     async (count) => {
       if (confirmDeleteAll(count)) {
-        await withLoading(setIsLoading, async () => {
-          await simulateApiCall();
-          operations.deleteAllEmployees();
-        });
+        await operations.deleteAllEmployees();
       }
     },
     [operations],
@@ -69,10 +54,7 @@ export const useEmployeeOperations = (operations) => {
         return;
       }
 
-      await withLoading(setIsLoading, async () => {
-        await simulateApiCall(API_SIMULATION_DELAYS.GENERATE);
-        operations.generateEmployees(numCount);
-      });
+      await operations.generateEmployees(numCount);
     },
     [operations],
   );
@@ -91,24 +73,16 @@ export const useEmployeeOperations = (operations) => {
 export const useModalManager = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
-  const [isPreparingModal, setIsPreparingModal] = useState(false);
+  const [isPreparingModal] = useState(false);
 
-  const openAddModal = useCallback(async () => {
-    setIsPreparingModal(true);
-    await prepareModal(() => {
-      setEditingEmployee(null);
-      setShowModal(true);
-      setIsPreparingModal(false);
-    });
+  const openAddModal = useCallback(() => {
+    setEditingEmployee(null);
+    setShowModal(true);
   }, []);
 
-  const openEditModal = useCallback(async (employee) => {
-    setIsPreparingModal(true);
-    await prepareModal(() => {
-      setEditingEmployee(employee);
-      setShowModal(true);
-      setIsPreparingModal(false);
-    });
+  const openEditModal = useCallback((employee) => {
+    setEditingEmployee(employee);
+    setShowModal(true);
   }, []);
 
   const closeModal = useCallback(() => {

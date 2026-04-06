@@ -1,4 +1,5 @@
 import React, { useState, useEffect, memo } from "react";
+import { createPortal } from "react-dom";
 
 const Modal = memo(
   ({
@@ -45,7 +46,7 @@ const Modal = memo(
       }
     };
 
-    return (
+    return createPortal(
       <div
         className="modal-overlay"
         onClick={handleBackdropClick}
@@ -77,7 +78,8 @@ const Modal = memo(
             </div>
           )}
         </div>
-      </div>
+      </div>,
+      document.body,
     );
   },
 );

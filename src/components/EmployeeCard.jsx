@@ -1,95 +1,37 @@
-import React, { useState, memo } from "react";
+import React, { memo } from "react";
+import { useNavigate } from "react-router-dom";
 
 const EmployeeCard = memo(({ employee, onEdit, onDelete }) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [editForm, setEditForm] = useState(employee);
-
-  const handleSave = () => {
-    onEdit(editForm);
-    setIsEditing(false);
-  };
-
-  const handleCancel = () => {
-    setEditForm(employee);
-    setIsEditing(false);
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setEditForm((prev) => ({ ...prev, [name]: value }));
-  };
-
-  if (isEditing) {
-    return (
-      <div className="employee-card editing">
-        <div className="card-header">
-          <h3>Edit Employee</h3>
-        </div>
-        <div className="card-body">
-          <div className="form-group">
-            <label>Name:</label>
-            <input
-              type="text"
-              name="name"
-              value={editForm.name}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label>Email:</label>
-            <input
-              type="email"
-              name="email"
-              value={editForm.email}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label>Department:</label>
-            <input
-              type="text"
-              name="department"
-              value={editForm.department}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label>Role:</label>
-            <input
-              type="text"
-              name="role"
-              value={editForm.role}
-              onChange={handleChange}
-              required
-            />
-          </div>
-        </div>
-        <div className="card-actions">
-          <button className="btn btn-primary" onClick={handleSave}>
-            Save
-          </button>
-          <button className="btn btn-secondary" onClick={handleCancel}>
-            Cancel
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const navigate = useNavigate();
 
   return (
-    <div className="employee-card">
+    <div
+      className="employee-card group cursor-pointer"
+      onClick={() => navigate(`/employee/${employee.id}`)}
+    >
       <div className="card-header">
-        <h3>{employee.name}</h3>
-        <div className="card-actions">
-          <button className="btn btn-edit" onClick={() => setIsEditing(true)}>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
+            {employee.name.charAt(0)}
+          </div>
+          <h3>{employee.name}</h3>
+        </div>
+        <div className="card-actions" onClick={(e) => e.stopPropagation()}>
+          <button
+            className="btn btn-edit"
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(employee);
+            }}
+          >
             Edit
           </button>
           <button
             className="btn btn-delete"
-            onClick={() => onDelete(employee.id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(employee.id);
+            }}
           >
             Delete
           </button>

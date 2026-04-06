@@ -1,53 +1,56 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { useEmployeeContext } from "../context/EmployeeContext";
 import { useTheme } from "../context/ThemeContext";
 import { useEmployeeFilters } from "../hooks/useEmployeeFilters";
-import { usePagination } from "../hooks/usePagination";
 import { useEmployeeOperations } from "../hooks/useEmployeeOperations";
 import { useModalManager } from "../hooks/useEmployeeOperations";
 import { useInitialLoading } from "../hooks/useEmployeeOperations";
+import { useUrlSync } from "../hooks/useUrlSync";
 import EmployeeCard from "../components/EmployeeCard";
 import FilterBar from "../components/FilterBar";
 import Pagination from "../components/Pagination";
 import SkeletonLoader from "../components/SkeletonLoader";
 import Modal from "../components/Modal";
 import EmployeeForm from "../components/EmployeeForm";
-import LoadingSpinner from "../components/LoadingSpinner";
+// Removed unused imports
 import { LOADING_MESSAGES } from "../constants";
 
 const HomePage = React.memo(() => {
   const {
-    employees,
+    data: employees, // Use 'data' as the state property name as requested
+    currentPage,
+    filters,
+    isLoading,
+    filteredEmployees,
+    paginatedEmployees,
+    paginationInfo,
     addEmployee,
     updateEmployee,
     deleteEmployee,
     deleteAllEmployees,
     generateEmployees,
+    setFilter,
+    changePage,
   } = useEmployeeContext();
 
   const { isDarkMode, toggleTheme } = useTheme();
 
+  // URL synchronization
   const {
-    filteredEmployees,
-    searchTerm,
-    setSearchTerm,
-    departmentFilter,
-    setDepartmentFilter,
-    departments,
-    isSearchDebouncing,
-  } = useEmployeeFilters(employees);
-
-  const {
-    currentPage,
-    totalPages,
-    paginatedItems,
     goToPage,
-    goToNextPage,
-    goToPreviousPage,
-  } = usePagination(filteredEmployees, 5);
+    setSearchFilter,
+    setDepartmentFilter,
+    setStatusFilter,
+    clearFilters,
+    localSearch,
+    isSearchDebouncing: isSyncDebouncing,
+  } = useUrlSync();
+
+  // Keep only necessary hooks and unify logic
+  const { departments } = useEmployeeFilters(employees);
 
   const {
-    isLoading,
+    isLoading: operationsLoading,
     addEmployee: handleAddEmployee,
     updateEmployee: handleUpdateEmployee,
     deleteEmployee: handleDeleteEmployee,
@@ -74,6 +77,39 @@ const HomePage = React.memo(() => {
 
   const [generateCount, setGenerateCount] = useState(10);
 
+  // Memoized computed values moved up to be used by handlers
+  const employeeCount = useMemo(() => employees?.length || 0, [employees]);
+  const filteredCount = useMemo(
+    () => filteredEmployees?.length || 0,
+    [filteredEmployees],
+  );
+  const paginatedCount = useMemo(
+    () => paginatedEmployees?.length || 0,
+    [paginatedEmployees],
+  );
+
+  // Unified form submission handler to ensure modal closes on success
+  const handleFormSubmit = useCallback(
+    async (formData) => {
+      if (editingEmployee) {
+        // Ensure the ID is attached to the form data for the reducer to find the match
+        await handleUpdateEmployee({ ...formData, id: editingEmployee.id });
+      } else {
+        await handleAddEmployee(formData);
+      }
+      closeModal(); // Close modal after successful async operation
+    },
+    [editingEmployee, handleUpdateEmployee, handleAddEmployee, closeModal],
+  );
+
+  // Simplified Page change
+  const handlePageChange = useCallback(
+    (page) => {
+      changePage(page);
+    },
+    [changePage],
+  );
+
   const handleEditEmployee = useCallback(
     (employee) => {
       openEditModal(employee);
@@ -89,19 +125,45 @@ const HomePage = React.memo(() => {
     closeModal();
   }, [closeModal]);
 
+  const handleDeleteAllWrapper = useCallback(async () => {
+    // Pass the count to confirmDeleteAll helper
+    await handleDeleteAllEmployees(employeeCount);
+  }, [handleDeleteAllEmployees, employeeCount]);
+
   const handleGenerateEmployeesWrapper = useCallback(async () => {
     await handleGenerateEmployees(generateCount);
   }, [handleGenerateEmployees, generateCount]);
 
-  // Memoized computed values
-  const employeeCount = useMemo(() => employees.length, [employees.length]);
-  const filteredCount = useMemo(
-    () => filteredEmployees.length,
-    [filteredEmployees.length],
+  // Filter handlers with URL sync
+  const handleSearchChange = useCallback(
+    (search) => {
+      setSearchFilter(search);
+    },
+    [setSearchFilter],
   );
-  const paginatedCount = useMemo(
-    () => paginatedItems.length,
-    [paginatedItems.length],
+
+  const handleDepartmentChange = useCallback(
+    (department) => {
+      setDepartmentFilter(department);
+    },
+    [setDepartmentFilter],
+  );
+
+  const handleStatusChange = useCallback(
+    (status) => {
+      setStatusFilter(status);
+    },
+    [setStatusFilter],
+  );
+
+  const handleClearFilters = useCallback(() => {
+    clearFilters();
+  }, [clearFilters]);
+
+  const modalTitle = useMemo(
+    () =>
+      editingEmployee ? `Edit ${editingEmployee.name}` : "Add New Employee",
+    [editingEmployee],
   );
 
   const themeTitle = useMemo(
@@ -109,24 +171,8 @@ const HomePage = React.memo(() => {
     [isDarkMode],
   );
 
-  const modalTitle = useMemo(
-    () => (editingEmployee ? "Edit Employee" : "Add New Employee"),
-    [editingEmployee],
-  );
-
-  if (isInitialLoading || isPreparingModal) {
-    return (
-      <div className="page-loader">
-        <LoadingSpinner
-          message={
-            isInitialLoading
-              ? LOADING_MESSAGES.INITIAL
-              : LOADING_MESSAGES.PREPARING
-          }
-        />
-      </div>
-    );
-  }
+  // Unified skeleton display condition
+  const shouldShowSkeleton = isLoading || isInitialLoading;
 
   return (
     <div className="home-page">
@@ -176,7 +222,7 @@ const HomePage = React.memo(() => {
             </div>
             <button
               className="btn btn-danger delete-all-btn"
-              onClick={handleDeleteAllEmployees}
+              onClick={handleDeleteAllWrapper}
               disabled={isLoading || employeeCount === 0}
             >
               Delete All Employees
@@ -202,20 +248,21 @@ const HomePage = React.memo(() => {
         >
           <EmployeeForm
             employee={editingEmployee}
-            onSubmit={
-              editingEmployee ? handleUpdateEmployee : handleAddEmployee
-            }
+            onSubmit={handleFormSubmit}
             isLoading={isLoading}
           />
         </Modal>
 
         <FilterBar
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          departmentFilter={departmentFilter}
-          setDepartmentFilter={setDepartmentFilter}
+          searchTerm={localSearch}
+          onSearchChange={handleSearchChange}
+          departmentFilter={filters.department}
+          onDepartmentChange={handleDepartmentChange}
+          statusFilter={filters.status}
+          onStatusChange={handleStatusChange}
           departments={departments}
-          isSearchDebouncing={isSearchDebouncing}
+          isSearchDebouncing={isSyncDebouncing}
+          onClearFilters={handleClearFilters}
         />
 
         <div className="results-info">
@@ -225,12 +272,12 @@ const HomePage = React.memo(() => {
         </div>
 
         <div className="employees-grid">
-          {isLoading ? (
+          {shouldShowSkeleton ? (
             Array.from({ length: 5 }, (_, index) => (
               <SkeletonLoader key={index} />
             ))
-          ) : paginatedItems.length > 0 ? (
-            paginatedItems.map((employee) => (
+          ) : paginatedEmployees.length > 0 ? (
+            paginatedEmployees.map((employee) => (
               <EmployeeCard
                 key={employee.id}
                 employee={employee}
@@ -246,11 +293,13 @@ const HomePage = React.memo(() => {
         </div>
 
         <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          goToPage={goToPage}
-          goToNextPage={goToNextPage}
-          goToPreviousPage={goToPreviousPage}
+          currentPage={paginationInfo.currentPage}
+          totalPages={paginationInfo.totalPages}
+          goToPage={handlePageChange}
+          goToNextPage={() => handlePageChange(paginationInfo.currentPage + 1)}
+          goToPreviousPage={() =>
+            handlePageChange(paginationInfo.currentPage - 1)
+          }
         />
       </div>
     </div>

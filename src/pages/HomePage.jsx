@@ -91,7 +91,7 @@ const HomePage = React.memo(() => {
 
   const isInitialLoading = useInitialLoading();
 
-  // حالة محلية لمحاكاة تأخير الـ API عند البحث أو الجلب
+  // Local state to simulate API delay when searching or fetching
   const [isSimulating, setIsSimulating] = useState(false);
 
   useEffect(() => {

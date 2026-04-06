@@ -13,7 +13,7 @@ const EmployeeProfile = () => {
   const data = useSelector(selectEmployeesData);
   const { isPageLoading, isMutating } = useSelector(selectEmployeesState);
 
-  // محاكاة تأخير جلب بيانات الموظف
+  // Simulate employee data fetching delay
   const [isSimulating, setIsSimulating] = useState(false);
 
   useEffect(() => {
@@ -30,9 +30,9 @@ const EmployeeProfile = () => {
     return data.find((emp) => String(emp.id) === String(id));
   }, [data, id]);
 
-  // عرض شاشة التحميل أثناء المحاكاة أو الجلب الحقيقي
+  // Display loading screen during simulation or actual fetching
   if (isLoading) {
-    return <LoadingSpinner message="جاري جلب بيانات الموظف..." />;
+    return <LoadingSpinner message="Fetching employee data..." />;
   }
 
   // Prevent 404 from appearing during initial data loading

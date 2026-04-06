@@ -36,6 +36,23 @@ export const ANIMATION_DURATIONS = {
   INPUT_FOCUS: 200,
 };
 
+// API Simulation Delays
+export const API_SIMULATION_DELAYS = {
+  DEFAULT: 500,
+  GENERATE: 1000,
+  INITIAL_LOAD: 800,
+  MODAL_PREPARE: 700,
+};
+
+// Loading Messages
+export const LOADING_MESSAGES = {
+  INITIAL: "Loading employees...",
+  PREPARING: "Preparing data...",
+  SAVING: "Saving...",
+  DELETING: "Deleting...",
+  GENERATING: "Generating...",
+};
+
 // Local Storage Keys
 export const STORAGE_KEYS = {
   THEME: "employee_app_theme",

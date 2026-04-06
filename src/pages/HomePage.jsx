@@ -1,8 +1,11 @@
-import React, { useState, useMemo, useEffect, useCallback } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { useEmployeeContext } from "../context/EmployeeContext";
 import { useTheme } from "../context/ThemeContext";
 import { useEmployeeFilters } from "../hooks/useEmployeeFilters";
 import { usePagination } from "../hooks/usePagination";
+import { useEmployeeOperations } from "../hooks/useEmployeeOperations";
+import { useModalManager } from "../hooks/useEmployeeOperations";
+import { useInitialLoading } from "../hooks/useEmployeeOperations";
 import EmployeeCard from "../components/EmployeeCard";
 import FilterBar from "../components/FilterBar";
 import Pagination from "../components/Pagination";
@@ -10,9 +13,9 @@ import SkeletonLoader from "../components/SkeletonLoader";
 import Modal from "../components/Modal";
 import EmployeeForm from "../components/EmployeeForm";
 import LoadingSpinner from "../components/LoadingSpinner";
-import { MAX_GENERATE_COUNT, ERROR_MESSAGES } from "../constants";
+import { LOADING_MESSAGES } from "../constants";
 
-const HomePage = () => {
+const HomePage = React.memo(() => {
   const {
     employees,
     addEmployee,
@@ -21,7 +24,9 @@ const HomePage = () => {
     deleteAllEmployees,
     generateEmployees,
   } = useEmployeeContext();
+
   const { isDarkMode, toggleTheme } = useTheme();
+
   const {
     filteredEmployees,
     searchTerm,
@@ -31,6 +36,7 @@ const HomePage = () => {
     departments,
     isSearchDebouncing,
   } = useEmployeeFilters(employees);
+
   const {
     currentPage,
     totalPages,
@@ -40,119 +46,82 @@ const HomePage = () => {
     goToPreviousPage,
   } = usePagination(filteredEmployees, 5);
 
-  const [showModal, setShowModal] = useState(false);
-  const [editingEmployee, setEditingEmployee] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
-  const [isPreparingModal, setIsPreparingModal] = useState(false);
+  const {
+    isLoading,
+    addEmployee: handleAddEmployee,
+    updateEmployee: handleUpdateEmployee,
+    deleteEmployee: handleDeleteEmployee,
+    deleteAllEmployees: handleDeleteAllEmployees,
+    generateEmployees: handleGenerateEmployees,
+  } = useEmployeeOperations({
+    addEmployee,
+    updateEmployee,
+    deleteEmployee,
+    deleteAllEmployees,
+    generateEmployees,
+  });
+
+  const {
+    showModal,
+    editingEmployee,
+    isPreparingModal,
+    openAddModal,
+    openEditModal,
+    closeModal,
+  } = useModalManager();
+
+  const isInitialLoading = useInitialLoading();
+
   const [generateCount, setGenerateCount] = useState(10);
 
-  const handleAddEmployee = useCallback(
-    async (employeeData) => {
-      setIsLoading(true);
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      addEmployee(employeeData);
-      setShowModal(false);
-      setIsLoading(false);
+  const handleEditEmployee = useCallback(
+    (employee) => {
+      openEditModal(employee);
     },
-    [addEmployee],
+    [openEditModal],
   );
-
-  const handleUpdateEmployee = useCallback(
-    async (employeeData) => {
-      setIsLoading(true);
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      updateEmployee(employeeData);
-      setShowModal(false);
-      setEditingEmployee(null);
-      setIsLoading(false);
-    },
-    [updateEmployee],
-  );
-
-  const handleEditEmployee = useCallback((employee) => {
-    setIsPreparingModal(true);
-    setTimeout(() => {
-      setEditingEmployee(employee);
-      setShowModal(true);
-      setIsPreparingModal(false);
-    }, 700);
-  }, []);
 
   const handleAddNewEmployee = useCallback(() => {
-    setIsPreparingModal(true);
-    setTimeout(() => {
-      setEditingEmployee(null);
-      setShowModal(true);
-      setIsPreparingModal(false);
-    }, 700);
-  }, []);
+    openAddModal();
+  }, [openAddModal]);
 
   const handleCloseModal = useCallback(() => {
-    setShowModal(false);
-    setEditingEmployee(null);
-  }, []);
+    closeModal();
+  }, [closeModal]);
 
-  useEffect(() => {
-    const initialLoadTimer = setTimeout(() => {
-      setIsInitialLoading(false);
-    }, 800);
+  const handleGenerateEmployeesWrapper = useCallback(async () => {
+    await handleGenerateEmployees(generateCount);
+  }, [handleGenerateEmployees, generateCount]);
 
-    return () => clearTimeout(initialLoadTimer);
-  }, []);
-
-  const handleDeleteEmployee = useCallback(
-    async (id) => {
-      if (window.confirm("Are you sure you want to delete this employee?")) {
-        setIsLoading(true);
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 500));
-
-        deleteEmployee(id);
-        setIsLoading(false);
-      }
-    },
-    [deleteEmployee],
+  // Memoized computed values
+  const employeeCount = useMemo(() => employees.length, [employees.length]);
+  const filteredCount = useMemo(
+    () => filteredEmployees.length,
+    [filteredEmployees.length],
+  );
+  const paginatedCount = useMemo(
+    () => paginatedItems.length,
+    [paginatedItems.length],
   );
 
-  const handleDeleteAllEmployees = useCallback(async () => {
-    if (
-      window.confirm(
-        `Are you sure you want to delete all ${employees.length} employees? This action cannot be undone.`,
-      )
-    ) {
-      setIsLoading(true);
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      deleteAllEmployees();
-      setIsLoading(false);
-    }
-  }, [employees.length, deleteAllEmployees]);
+  const themeTitle = useMemo(
+    () => (isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"),
+    [isDarkMode],
+  );
 
-  const handleGenerateEmployees = useCallback(async () => {
-    const count = parseInt(generateCount);
-    if (isNaN(count) || count <= 0 || count > MAX_GENERATE_COUNT) {
-      alert(ERROR_MESSAGES.GENERATE_COUNT_INVALID);
-      return;
-    }
-
-    setIsLoading(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    generateEmployees(count);
-    setIsLoading(false);
-  }, [generateCount, generateEmployees]);
+  const modalTitle = useMemo(
+    () => (editingEmployee ? "Edit Employee" : "Add New Employee"),
+    [editingEmployee],
+  );
 
   if (isInitialLoading || isPreparingModal) {
     return (
       <div className="page-loader">
         <LoadingSpinner
           message={
-            isInitialLoading ? "Loading employees..." : "Preparing data..."
+            isInitialLoading
+              ? LOADING_MESSAGES.INITIAL
+              : LOADING_MESSAGES.PREPARING
           }
         />
       </div>
@@ -167,15 +136,13 @@ const HomePage = () => {
           <div className="header-controls">
             <div className="employee-count">
               <span className="count-badge">
-                Total Employees: {employees.length}
+                Total Employees: {employeeCount}
               </span>
             </div>
             <button
               className="btn theme-toggle"
               onClick={toggleTheme}
-              title={
-                isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"
-              }
+              title={themeTitle}
             >
               {isDarkMode ? "☀️" : "🌙"}
             </button>
@@ -201,7 +168,7 @@ const HomePage = () => {
               />
               <button
                 className="btn btn-success generate-btn"
-                onClick={handleGenerateEmployees}
+                onClick={handleGenerateEmployeesWrapper}
                 disabled={isLoading}
               >
                 {isLoading ? "Generating..." : "Generate"}
@@ -210,7 +177,7 @@ const HomePage = () => {
             <button
               className="btn btn-danger delete-all-btn"
               onClick={handleDeleteAllEmployees}
-              disabled={isLoading || employees.length === 0}
+              disabled={isLoading || employeeCount === 0}
             >
               Delete All Employees
             </button>
@@ -229,7 +196,7 @@ const HomePage = () => {
         <Modal
           isOpen={showModal}
           onClose={handleCloseModal}
-          title={editingEmployee ? "Edit Employee" : "Add New Employee"}
+          title={modalTitle}
           isLoading={isLoading}
           showFooter={false}
         >
@@ -253,8 +220,7 @@ const HomePage = () => {
 
         <div className="results-info">
           <p>
-            Showing {paginatedItems.length} of {filteredEmployees.length}{" "}
-            employees
+            Showing {paginatedCount} of {filteredCount} employees
           </p>
         </div>
 
@@ -289,6 +255,8 @@ const HomePage = () => {
       </div>
     </div>
   );
-};
+});
+
+HomePage.displayName = "HomePage";
 
 export default HomePage;

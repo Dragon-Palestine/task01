@@ -52,8 +52,16 @@ const FilterBar = memo(
           </select>
           {(searchTerm || departmentFilter || statusFilter) && (
             <button
-              className="btn btn-secondary clear-filters-btn"
+              className="btn btn-delete clear-filters-btn"
               onClick={onClearFilters}
+              style={{
+                marginLeft: "10px",
+                padding: "6px 16px",
+                fontSize: "0.9rem",
+                fontWeight: "500",
+                borderRadius: "6px",
+                transition: "all 0.2s",
+              }}
             >
               Clear Filters
             </button>

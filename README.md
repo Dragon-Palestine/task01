@@ -47,7 +47,7 @@ A modern, high-performance React application for managing employee information w
 - **React 19**: Latest React with hooks, concurrent features, and performance optimizations
 - **Vite**: Fast build tool and development server with HMR
 - **CSS3**: Modern styling with CSS variables for theming and animations
-- **Context API**: Efficient state management for employee data and theme
+- **Redux Toolkit**: Advanced state management for employees and UI state
 - **Custom Hooks**: Reusable logic for filtering, pagination, and form handling
 - **Local Storage**: Persistent theme and filter preferences
 - **TypeScript Types**: Type definitions for better code maintainability
@@ -63,10 +63,11 @@ src/
 │   ├── Modal.jsx
 │   ├── Pagination.jsx
 │   └── SkeletonLoader.jsx
-├── context/            # React Context for state management
-│   ├── EmployeeContext.jsx
-│   └── ThemeContext.jsx
+├── features/           # Redux Slices
+│   ├── employees/
+│   └── ui/
 ├── hooks/              # Custom React hooks
+│   ├── useUrlSync.js
 │   ├── useEmployeeFilters.js
 │   └── usePagination.js
 ├── pages/              # Page components

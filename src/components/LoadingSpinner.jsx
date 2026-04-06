@@ -8,7 +8,7 @@ const LoadingSpinner = ({ message = "Loading..." }) => (
       alignItems: "center",
       height: "100vh",
       fontSize: "1.2rem",
-      color: "#667eea",
+      color: "var(--primary-color, #667eea)",
       gap: "12px",
       flexDirection: "column",
       textAlign: "center",
@@ -20,7 +20,7 @@ const LoadingSpinner = ({ message = "Loading..." }) => (
         width: "40px",
         height: "40px",
         border: "4px solid #f3f3f3",
-        borderTop: "4px solid #667eea",
+        borderTop: "4px solid var(--primary-color, #667eea)",
         borderRadius: "50%",
         animation: "spin 1s linear infinite",
       }}

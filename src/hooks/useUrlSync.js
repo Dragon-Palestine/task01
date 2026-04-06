@@ -31,7 +31,7 @@ export const useUrlSync = () => {
       if (localSearch !== filters.search) {
         dispatch(setFilter({ search: localSearch }));
       }
-    }, SEARCH_DEBOUNCE_DELAY);
+    }, 500); // Optimized to 500ms for better responsiveness
     return () => clearTimeout(timer);
   }, [localSearch, filters.search, dispatch]);
 

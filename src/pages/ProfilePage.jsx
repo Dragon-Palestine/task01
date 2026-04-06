@@ -25,9 +25,10 @@ const ProfilePage = React.memo(() => {
   }, [isDarkMode]);
 
   // Find employee by ID
-  const employee = useMemo(() => {
-    return employees.find((emp) => emp.id.toString() === id);
-  }, [employees, id]);
+  const employee = useMemo(
+    () => employees.find((emp) => String(emp.id) === String(id)),
+    [employees, id],
+  );
 
   const themeTitle = useMemo(
     () => (isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"),

@@ -26,7 +26,7 @@ export const VALIDATION_RULES = {
 };
 
 // Debounce Constants
-export const SEARCH_DEBOUNCE_DELAY = 1000; // 1 second
+export const SEARCH_DEBOUNCE_DELAY = 500; // 0.5 second
 
 // Animation Constants
 export const ANIMATION_DURATIONS = {
@@ -39,9 +39,9 @@ export const ANIMATION_DURATIONS = {
 // API Simulation Delays
 export const API_SIMULATION_DELAYS = {
   DEFAULT: 500,
-  GENERATE: 1000,
-  INITIAL_LOAD: 800,
-  MODAL_PREPARE: 700,
+  GENERATE: 500,
+  INITIAL_LOAD: 500,
+  MODAL_PREPARE: 500,
 };
 
 // Loading Messages

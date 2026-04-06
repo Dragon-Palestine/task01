@@ -100,8 +100,6 @@ code {
   border: 1px solid var(--card-border);
   transition: var(--transition);
 }
-  transition: background-color 0.3s ease;
-}
 
 h1 {
   text-align: center;
@@ -169,13 +167,18 @@ h1 {
 }
 
 .theme-toggle::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
   transition: left 0.5s;
 }
 
@@ -299,7 +302,11 @@ h1 {
 
 /* Add Employee Form */
 .add-employee-form {
-  background: linear-gradient(135deg, var(--card-bg) 0%, rgba(102, 126, 234, 0.02) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--card-bg) 0%,
+    rgba(102, 126, 234, 0.02) 100%
+  );
   border: 2px solid var(--card-border);
   border-radius: var(--border-radius);
   padding: 35px;
@@ -311,13 +318,18 @@ h1 {
 }
 
 .add-employee-form::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 4px;
-  background: linear-gradient(90deg, var(--accent-color), #764ba2, var(--success-color));
+  background: linear-gradient(
+    90deg,
+    var(--accent-color),
+    #764ba2,
+    var(--success-color)
+  );
 }
 
 .add-employee-form h2 {
@@ -408,7 +420,7 @@ h1 {
 }
 
 .search-container::before {
-  content: '🔍';
+  content: "🔍";
   position: absolute;
   left: 15px;
   top: 50%;
@@ -441,6 +453,39 @@ h1 {
 .search-input::placeholder {
   color: var(--text-secondary);
   opacity: 0.7;
+}
+
+.search-input.searching {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.search-indicator {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--accent-color);
+  border-top: 2px solid transparent;
+  border-radius: 50%;
+  animation: searchSpin 1s linear infinite;
+}
+
+@keyframes searchSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .filter-container {
@@ -512,7 +557,11 @@ h1 {
 }
 
 .card-header {
-  background: linear-gradient(135deg, var(--header-bg) 0%, rgba(102, 126, 234, 0.05) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--header-bg) 0%,
+    rgba(102, 126, 234, 0.05) 100%
+  );
   padding: 20px 25px;
   display: flex;
   justify-content: space-between;
@@ -522,7 +571,7 @@ h1 {
 }
 
 .card-header::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: 0;
   left: 0;
@@ -564,17 +613,17 @@ h1 {
 }
 
 .card-body p::before {
-  content: '📧';
+  content: "📧";
   margin-right: 8px;
   font-size: 14px;
 }
 
 .card-body p:nth-child(2)::before {
-  content: '🏢';
+  content: "🏢";
 }
 
 .card-body p:nth-child(3)::before {
-  content: '👔';
+  content: "👔";
 }
 
 .card-body strong {
@@ -603,13 +652,18 @@ h1 {
 }
 
 .btn::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
   transition: left 0.5s;
 }
 
@@ -673,9 +727,6 @@ h1 {
   background: var(--btn-delete-hover);
   transform: translateY(-2px) scale(1.05);
   box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
-}
-  display: inline-block;
-  text-align: center;
 }
 
 .btn:disabled {
@@ -965,7 +1016,11 @@ h1 {
   align-items: center;
   padding: 25px 30px;
   border-bottom: 1px solid var(--card-border);
-  background: linear-gradient(135deg, var(--header-bg) 0%, rgba(102, 126, 234, 0.05) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--header-bg) 0%,
+    rgba(102, 126, 234, 0.05) 100%
+  );
 }
 
 .modal-header h2 {
@@ -1050,13 +1105,13 @@ h1 {
 }
 
 .error-message::before {
-  content: '⚠️';
+  content: "⚠️";
   margin-right: 5px;
   font-size: 14px;
 }
 
 .employee-form .form-group label::after {
-  content: ' *';
+  content: " *";
   color: var(--danger-color);
   font-weight: bold;
 }

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { useEmployeeContext } from "../context/EmployeeContext";
 import { useTheme } from "../context/ThemeContext";
 import { useEmployeeFilters } from "../hooks/useEmployeeFilters";
@@ -9,6 +9,7 @@ import Pagination from "../components/Pagination";
 import SkeletonLoader from "../components/SkeletonLoader";
 import Modal from "../components/Modal";
 import EmployeeForm from "../components/EmployeeForm";
+import { MAX_GENERATE_COUNT, ERROR_MESSAGES } from "../constants";
 
 const HomePage = () => {
   const {
@@ -27,6 +28,7 @@ const HomePage = () => {
     departmentFilter,
     setDepartmentFilter,
     departments,
+    isSearchDebouncing,
   } = useEmployeeFilters(employees);
   const {
     currentPage,
@@ -42,54 +44,63 @@ const HomePage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [generateCount, setGenerateCount] = useState(10);
 
-  const handleAddEmployee = async (employeeData) => {
-    setIsLoading(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    addEmployee(employeeData);
-    setShowModal(false);
-    setIsLoading(false);
-  };
-
-  const handleUpdateEmployee = async (employeeData) => {
-    setIsLoading(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    updateEmployee(employeeData);
-    setShowModal(false);
-    setEditingEmployee(null);
-    setIsLoading(false);
-  };
-
-  const handleEditEmployee = (employee) => {
-    setEditingEmployee(employee);
-    setShowModal(true);
-  };
-
-  const handleAddNewEmployee = () => {
-    setEditingEmployee(null);
-    setShowModal(true);
-  };
-
-  const handleCloseModal = () => {
-    setShowModal(false);
-    setEditingEmployee(null);
-  };
-
-  const handleDeleteEmployee = async (id) => {
-    if (window.confirm("Are you sure you want to delete this employee?")) {
+  const handleAddEmployee = useCallback(
+    async (employeeData) => {
       setIsLoading(true);
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 500));
 
-      deleteEmployee(id);
+      addEmployee(employeeData);
+      setShowModal(false);
       setIsLoading(false);
-    }
-  };
+    },
+    [addEmployee],
+  );
 
-  const handleDeleteAllEmployees = async () => {
+  const handleUpdateEmployee = useCallback(
+    async (employeeData) => {
+      setIsLoading(true);
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      updateEmployee(employeeData);
+      setShowModal(false);
+      setEditingEmployee(null);
+      setIsLoading(false);
+    },
+    [updateEmployee],
+  );
+
+  const handleEditEmployee = useCallback((employee) => {
+    setEditingEmployee(employee);
+    setShowModal(true);
+  }, []);
+
+  const handleAddNewEmployee = useCallback(() => {
+    setEditingEmployee(null);
+    setShowModal(true);
+  }, []);
+
+  const handleCloseModal = useCallback(() => {
+    setShowModal(false);
+    setEditingEmployee(null);
+  }, []);
+
+  const handleDeleteEmployee = useCallback(
+    async (id) => {
+      if (window.confirm("Are you sure you want to delete this employee?")) {
+        setIsLoading(true);
+        // Simulate API call
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        deleteEmployee(id);
+        setIsLoading(false);
+      }
+    },
+    [deleteEmployee],
+  );
+
+  const handleDeleteAllEmployees = useCallback(async () => {
     if (
       window.confirm(
         `Are you sure you want to delete all ${employees.length} employees? This action cannot be undone.`,
@@ -101,12 +112,12 @@ const HomePage = () => {
       deleteAllEmployees();
       setIsLoading(false);
     }
-  };
+  }, [employees.length, deleteAllEmployees]);
 
-  const handleGenerateEmployees = async () => {
+  const handleGenerateEmployees = useCallback(async () => {
     const count = parseInt(generateCount);
-    if (isNaN(count) || count <= 0 || count > 10000) {
-      alert("Please enter a valid number between 1 and 10,000");
+    if (isNaN(count) || count <= 0 || count > MAX_GENERATE_COUNT) {
+      alert(ERROR_MESSAGES.GENERATE_COUNT_INVALID);
       return;
     }
 
@@ -115,7 +126,7 @@ const HomePage = () => {
     await new Promise((resolve) => setTimeout(resolve, 1000));
     generateEmployees(count);
     setIsLoading(false);
-  };
+  }, [generateCount, generateEmployees]);
 
   return (
     <div className="home-page">
@@ -206,6 +217,7 @@ const HomePage = () => {
           departmentFilter={departmentFilter}
           setDepartmentFilter={setDepartmentFilter}
           departments={departments}
+          isSearchDebouncing={isSearchDebouncing}
         />
 
         <div className="results-info">

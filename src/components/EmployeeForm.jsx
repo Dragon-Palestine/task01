@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, memo } from "react";
+import { VALIDATION_RULES, ERROR_MESSAGES } from "../constants";
 
-const EmployeeForm = ({ employee, onSubmit, isLoading }) => {
+const EmployeeForm = memo(({ employee, onSubmit, isLoading }) => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -33,39 +34,40 @@ const EmployeeForm = ({ employee, onSubmit, isLoading }) => {
     switch (name) {
       case "name":
         if (!value.trim()) {
-          newErrors.name = "Name is required";
-        } else if (value.trim().length < 2) {
-          newErrors.name = "Name must be at least 2 characters";
-        } else if (value.trim().length > 50) {
-          newErrors.name = "Name must be less than 50 characters";
+          newErrors.name = ERROR_MESSAGES.NAME_REQUIRED;
+        } else if (value.trim().length < VALIDATION_RULES.NAME.MIN_LENGTH) {
+          newErrors.name = ERROR_MESSAGES.NAME_TOO_SHORT;
+        } else if (value.trim().length > VALIDATION_RULES.NAME.MAX_LENGTH) {
+          newErrors.name = ERROR_MESSAGES.NAME_TOO_LONG;
         } else {
           delete newErrors.name;
         }
         break;
       case "email":
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!value.trim()) {
-          newErrors.email = "Email is required";
-        } else if (!emailRegex.test(value)) {
-          newErrors.email = "Please enter a valid email address";
+          newErrors.email = ERROR_MESSAGES.EMAIL_REQUIRED;
+        } else if (!VALIDATION_RULES.EMAIL.PATTERN.test(value)) {
+          newErrors.email = ERROR_MESSAGES.EMAIL_INVALID;
         } else {
           delete newErrors.email;
         }
         break;
       case "department":
         if (!value.trim()) {
-          newErrors.department = "Department is required";
-        } else if (value.trim().length < 2) {
-          newErrors.department = "Department must be at least 2 characters";
+          newErrors.department = ERROR_MESSAGES.DEPARTMENT_REQUIRED;
+        } else if (
+          value.trim().length < VALIDATION_RULES.DEPARTMENT.MIN_LENGTH
+        ) {
+          newErrors.department = ERROR_MESSAGES.DEPARTMENT_TOO_SHORT;
         } else {
           delete newErrors.department;
         }
         break;
       case "role":
         if (!value.trim()) {
-          newErrors.role = "Role is required";
-        } else if (value.trim().length < 2) {
-          newErrors.role = "Role must be at least 2 characters";
+          newErrors.role = ERROR_MESSAGES.ROLE_REQUIRED;
+        } else if (value.trim().length < VALIDATION_RULES.ROLE.MIN_LENGTH) {
+          newErrors.role = ERROR_MESSAGES.ROLE_TOO_SHORT;
         } else {
           delete newErrors.role;
         }
@@ -82,33 +84,34 @@ const EmployeeForm = ({ employee, onSubmit, isLoading }) => {
 
     // Name validation
     if (!formData.name.trim()) {
-      newErrors.name = "Name is required";
-    } else if (formData.name.trim().length < 2) {
-      newErrors.name = "Name must be at least 2 characters";
-    } else if (formData.name.trim().length > 50) {
-      newErrors.name = "Name must be less than 50 characters";
+      newErrors.name = ERROR_MESSAGES.NAME_REQUIRED;
+    } else if (formData.name.trim().length < VALIDATION_RULES.NAME.MIN_LENGTH) {
+      newErrors.name = ERROR_MESSAGES.NAME_TOO_SHORT;
+    } else if (formData.name.trim().length > VALIDATION_RULES.NAME.MAX_LENGTH) {
+      newErrors.name = ERROR_MESSAGES.NAME_TOO_LONG;
     }
 
     // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!emailRegex.test(formData.email)) {
-      newErrors.email = "Please enter a valid email address";
+      newErrors.email = ERROR_MESSAGES.EMAIL_REQUIRED;
+    } else if (!VALIDATION_RULES.EMAIL.PATTERN.test(formData.email)) {
+      newErrors.email = ERROR_MESSAGES.EMAIL_INVALID;
     }
 
     // Department validation
     if (!formData.department.trim()) {
-      newErrors.department = "Department is required";
-    } else if (formData.department.trim().length < 2) {
-      newErrors.department = "Department must be at least 2 characters";
+      newErrors.department = ERROR_MESSAGES.DEPARTMENT_REQUIRED;
+    } else if (
+      formData.department.trim().length < VALIDATION_RULES.DEPARTMENT.MIN_LENGTH
+    ) {
+      newErrors.department = ERROR_MESSAGES.DEPARTMENT_TOO_SHORT;
     }
 
     // Role validation
     if (!formData.role.trim()) {
-      newErrors.role = "Role is required";
-    } else if (formData.role.trim().length < 2) {
-      newErrors.role = "Role must be at least 2 characters";
+      newErrors.role = ERROR_MESSAGES.ROLE_REQUIRED;
+    } else if (formData.role.trim().length < VALIDATION_RULES.ROLE.MIN_LENGTH) {
+      newErrors.role = ERROR_MESSAGES.ROLE_TOO_SHORT;
     }
 
     setErrors(newErrors);
@@ -142,6 +145,12 @@ const EmployeeForm = ({ employee, onSubmit, isLoading }) => {
     }, 1000); // 1 second delay
   };
 
+  const handleInputBlur = (e) => {
+    const { name, value } = e.target;
+    // Validate immediately on blur
+    validateField(name, value);
+  };
+
   // Cleanup timers on unmount
   useEffect(() => {
     return () => {
@@ -162,6 +171,7 @@ const EmployeeForm = ({ employee, onSubmit, isLoading }) => {
             name="name"
             value={formData.name}
             onChange={handleInputChange}
+            onBlur={handleInputBlur}
             placeholder="Enter employee name"
             className={errors.name ? "input-error" : ""}
             disabled={isLoading}
@@ -177,6 +187,7 @@ const EmployeeForm = ({ employee, onSubmit, isLoading }) => {
             name="email"
             value={formData.email}
             onChange={handleInputChange}
+            onBlur={handleInputBlur}
             placeholder="Enter employee email"
             className={errors.email ? "input-error" : ""}
             disabled={isLoading}
@@ -192,6 +203,7 @@ const EmployeeForm = ({ employee, onSubmit, isLoading }) => {
             name="department"
             value={formData.department}
             onChange={handleInputChange}
+            onBlur={handleInputBlur}
             placeholder="Enter department"
             className={errors.department ? "input-error" : ""}
             disabled={isLoading}
@@ -209,6 +221,7 @@ const EmployeeForm = ({ employee, onSubmit, isLoading }) => {
             name="role"
             value={formData.role}
             onChange={handleInputChange}
+            onBlur={handleInputBlur}
             placeholder="Enter role"
             className={errors.role ? "input-error" : ""}
             disabled={isLoading}
@@ -223,6 +236,6 @@ const EmployeeForm = ({ employee, onSubmit, isLoading }) => {
       </div>
     </form>
   );
-};
+});
 
 export default EmployeeForm;

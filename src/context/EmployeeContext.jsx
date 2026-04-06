@@ -1,4 +1,9 @@
-import React, { createContext, useContext, useReducer } from "react";
+import React, {
+  createContext,
+  useContext,
+  useReducer,
+  useCallback,
+} from "react";
 import { employeeReducer, initialEmployees } from "./employeeReducer";
 
 const EmployeeContext = createContext();
@@ -16,25 +21,25 @@ export const useEmployeeContext = () => {
 export const EmployeeProvider = ({ children }) => {
   const [employees, dispatch] = useReducer(employeeReducer, initialEmployees);
 
-  const addEmployee = (employee) => {
+  const addEmployee = useCallback((employee) => {
     dispatch({ type: "ADD_EMPLOYEE", payload: employee });
-  };
+  }, []);
 
-  const updateEmployee = (employee) => {
+  const updateEmployee = useCallback((employee) => {
     dispatch({ type: "UPDATE_EMPLOYEE", payload: employee });
-  };
+  }, []);
 
-  const deleteEmployee = (id) => {
+  const deleteEmployee = useCallback((id) => {
     dispatch({ type: "DELETE_EMPLOYEE", payload: id });
-  };
+  }, []);
 
-  const deleteAllEmployees = () => {
+  const deleteAllEmployees = useCallback(() => {
     dispatch({ type: "DELETE_ALL_EMPLOYEES" });
-  };
+  }, []);
 
-  const generateEmployees = (count) => {
+  const generateEmployees = useCallback((count) => {
     dispatch({ type: "GENERATE_EMPLOYEES", payload: count });
-  };
+  }, []);
 
   return (
     <EmployeeContext.Provider

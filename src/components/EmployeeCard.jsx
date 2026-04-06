@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, memo } from "react";
 
-const EmployeeCard = ({ employee, onEdit, onDelete }) => {
+const EmployeeCard = memo(({ employee, onEdit, onDelete }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState(employee);
 
@@ -108,6 +108,6 @@ const EmployeeCard = ({ employee, onEdit, onDelete }) => {
       </div>
     </div>
   );
-};
+});
 
 export default EmployeeCard;

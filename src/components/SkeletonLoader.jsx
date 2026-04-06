@@ -1,6 +1,6 @@
-import React from "react";
+import React, { memo } from "react";
 
-const SkeletonLoader = () => {
+const SkeletonLoader = memo(() => {
   return (
     <div className="employee-card skeleton">
       <div className="card-header skeleton-header">
@@ -17,6 +17,6 @@ const SkeletonLoader = () => {
       </div>
     </div>
   );
-};
+});
 
 export default SkeletonLoader;

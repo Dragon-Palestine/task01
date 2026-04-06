@@ -1,6 +1,7 @@
 import React, { Suspense, lazy } from "react";
 import { EmployeeProvider } from "./context/EmployeeContext";
 import { ThemeProvider } from "./context/ThemeContext";
+import ErrorBoundary from "./components/ErrorBoundary";
 import "./index.css";
 
 // Lazy load the HomePage component
@@ -43,9 +44,11 @@ function App() {
   return (
     <ThemeProvider>
       <EmployeeProvider>
-        <Suspense fallback={<LoadingSpinner />}>
-          <HomePage />
-        </Suspense>
+        <ErrorBoundary>
+          <Suspense fallback={<LoadingSpinner />}>
+            <HomePage />
+          </Suspense>
+        </ErrorBoundary>
       </EmployeeProvider>
     </ThemeProvider>
   );

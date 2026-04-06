@@ -1,10 +1,16 @@
 import React from "react";
+import { EmployeeProvider } from "./context/EmployeeContext";
+import { ThemeProvider } from "./context/ThemeContext";
+import HomePage from "./pages/HomePage";
+import "./index.css";
 
 function App() {
   return (
-    <div className="App">
-      <h1>Welcome to the Employee Management App</h1>
-    </div>
+    <ThemeProvider>
+      <EmployeeProvider>
+        <HomePage />
+      </EmployeeProvider>
+    </ThemeProvider>
   );
 }
 

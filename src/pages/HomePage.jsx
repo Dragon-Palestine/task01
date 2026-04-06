@@ -1,0 +1,251 @@
+import React, { useState, useMemo } from "react";
+import { useEmployeeContext } from "../context/EmployeeContext";
+import { useTheme } from "../context/ThemeContext";
+import { useEmployeeFilters } from "../hooks/useEmployeeFilters";
+import { usePagination } from "../hooks/usePagination";
+import EmployeeCard from "../components/EmployeeCard";
+import FilterBar from "../components/FilterBar";
+import Pagination from "../components/Pagination";
+import SkeletonLoader from "../components/SkeletonLoader";
+import Modal from "../components/Modal";
+import EmployeeForm from "../components/EmployeeForm";
+
+const HomePage = () => {
+  const {
+    employees,
+    addEmployee,
+    updateEmployee,
+    deleteEmployee,
+    deleteAllEmployees,
+    generateEmployees,
+  } = useEmployeeContext();
+  const { isDarkMode, toggleTheme } = useTheme();
+  const {
+    filteredEmployees,
+    searchTerm,
+    setSearchTerm,
+    departmentFilter,
+    setDepartmentFilter,
+    departments,
+  } = useEmployeeFilters(employees);
+  const {
+    currentPage,
+    totalPages,
+    paginatedItems,
+    goToPage,
+    goToNextPage,
+    goToPreviousPage,
+  } = usePagination(filteredEmployees, 5);
+
+  const [showModal, setShowModal] = useState(false);
+  const [editingEmployee, setEditingEmployee] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [generateCount, setGenerateCount] = useState(10);
+
+  const handleAddEmployee = async (employeeData) => {
+    setIsLoading(true);
+    // Simulate API call
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    addEmployee(employeeData);
+    setShowModal(false);
+    setIsLoading(false);
+  };
+
+  const handleUpdateEmployee = async (employeeData) => {
+    setIsLoading(true);
+    // Simulate API call
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    updateEmployee(employeeData);
+    setShowModal(false);
+    setEditingEmployee(null);
+    setIsLoading(false);
+  };
+
+  const handleEditEmployee = (employee) => {
+    setEditingEmployee(employee);
+    setShowModal(true);
+  };
+
+  const handleAddNewEmployee = () => {
+    setEditingEmployee(null);
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setEditingEmployee(null);
+  };
+
+  const handleDeleteEmployee = async (id) => {
+    if (window.confirm("Are you sure you want to delete this employee?")) {
+      setIsLoading(true);
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      deleteEmployee(id);
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteAllEmployees = async () => {
+    if (
+      window.confirm(
+        `Are you sure you want to delete all ${employees.length} employees? This action cannot be undone.`,
+      )
+    ) {
+      setIsLoading(true);
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      deleteAllEmployees();
+      setIsLoading(false);
+    }
+  };
+
+  const handleGenerateEmployees = async () => {
+    const count = parseInt(generateCount);
+    if (isNaN(count) || count <= 0 || count > 10000) {
+      alert("Please enter a valid number between 1 and 10,000");
+      return;
+    }
+
+    setIsLoading(true);
+    // Simulate API call
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    generateEmployees(count);
+    setIsLoading(false);
+  };
+
+  return (
+    <div className="home-page">
+      <div className="container">
+        <div className="header-section">
+          <h1>Employee Management System</h1>
+          <div className="header-controls">
+            <div className="employee-count">
+              <span className="count-badge">
+                Total Employees: {employees.length}
+              </span>
+            </div>
+            <button
+              className="btn theme-toggle"
+              onClick={toggleTheme}
+              title={
+                isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"
+              }
+            >
+              {isDarkMode ? "☀️" : "🌙"}
+            </button>
+          </div>
+        </div>
+
+        {/* Bulk Operations Section */}
+        <div className="bulk-operations">
+          <div className="bulk-actions">
+            <div className="generate-section">
+              <label htmlFor="generateCount" className="generate-label">
+                Generate Employees:
+              </label>
+              <input
+                id="generateCount"
+                type="number"
+                min="1"
+                max="10000"
+                value={generateCount}
+                onChange={(e) => setGenerateCount(e.target.value)}
+                className="generate-input"
+                placeholder="Enter number"
+              />
+              <button
+                className="btn btn-success generate-btn"
+                onClick={handleGenerateEmployees}
+                disabled={isLoading}
+              >
+                {isLoading ? "Generating..." : "Generate"}
+              </button>
+            </div>
+            <button
+              className="btn btn-danger delete-all-btn"
+              onClick={handleDeleteAllEmployees}
+              disabled={isLoading || employees.length === 0}
+            >
+              Delete All Employees
+            </button>
+          </div>
+        </div>
+
+        <div className="actions-bar">
+          <button
+            className="btn btn-primary add-btn"
+            onClick={handleAddNewEmployee}
+          >
+            Add Employee
+          </button>
+        </div>
+
+        <Modal
+          isOpen={showModal}
+          onClose={handleCloseModal}
+          title={editingEmployee ? "Edit Employee" : "Add New Employee"}
+          isLoading={isLoading}
+          showFooter={false}
+        >
+          <EmployeeForm
+            employee={editingEmployee}
+            onSubmit={
+              editingEmployee ? handleUpdateEmployee : handleAddEmployee
+            }
+            isLoading={isLoading}
+          />
+        </Modal>
+
+        <FilterBar
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          departmentFilter={departmentFilter}
+          setDepartmentFilter={setDepartmentFilter}
+          departments={departments}
+        />
+
+        <div className="results-info">
+          <p>
+            Showing {paginatedItems.length} of {filteredEmployees.length}{" "}
+            employees
+          </p>
+        </div>
+
+        <div className="employees-grid">
+          {isLoading ? (
+            Array.from({ length: 5 }, (_, index) => (
+              <SkeletonLoader key={index} />
+            ))
+          ) : paginatedItems.length > 0 ? (
+            paginatedItems.map((employee) => (
+              <EmployeeCard
+                key={employee.id}
+                employee={employee}
+                onEdit={handleEditEmployee}
+                onDelete={handleDeleteEmployee}
+              />
+            ))
+          ) : (
+            <div className="no-employees">
+              <p>No employees found matching your criteria.</p>
+            </div>
+          )}
+        </div>
+
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          goToPage={goToPage}
+          goToNextPage={goToNextPage}
+          goToPreviousPage={goToPreviousPage}
+        />
+      </div>
+    </div>
+  );
+};
+
+export default HomePage;

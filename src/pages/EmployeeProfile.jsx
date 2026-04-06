@@ -1,12 +1,15 @@
 import React, { useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useEmployeeContext } from "../context/EmployeeContext";
-import NotFound from "./NotFound";
+import { useSelector } from "react-redux";
+import { selectEmployeesData, selectEmployeesState } from "../features/employees/employeesSlice";
+import { Link } from "react-router-dom";
 
 const EmployeeProfile = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { data, isLoading } = useEmployeeContext();
+  const data = useSelector(selectEmployeesData);
+  const { isPageLoading, isMutating } = useSelector(selectEmployeesState);
+  const isLoading = isPageLoading || isMutating;
 
   // Find employee with ID type compatibility check
   const employee = useMemo(() => {
@@ -17,7 +20,19 @@ const EmployeeProfile = () => {
   // Prevent 404 from appearing during initial data loading
   if (!employee && !isLoading) {
     return (
-      <NotFound message="Sorry, the requested employee was not found in our system." />
+      <div className="not-found-page">
+        <div className="container">
+          <div className="error-content">
+            <h1>404 - Employee Not Found</h1>
+            <p>Sorry, the requested employee was not found in our system.</p>
+            <div className="error-actions">
+              <Link to="/" className="btn btn-primary">
+                Back to Home
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
     );
   }
 

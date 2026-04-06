@@ -1,7 +1,14 @@
 import React, { memo } from "react";
 
 const Pagination = memo(
-  ({ currentPage, totalPages, goToPage, goToNextPage, goToPreviousPage }) => {
+  ({
+    currentPage,
+    totalPages,
+    goToPage,
+    goToNextPage,
+    goToPreviousPage,
+    isLoading = false,
+  }) => {
     if (totalPages <= 1) return null;
 
     const getPageNumbers = () => {
@@ -29,7 +36,7 @@ const Pagination = memo(
         <button
           className="pagination-btn"
           onClick={goToPreviousPage}
-          disabled={currentPage === 1}
+          disabled={currentPage === 1 || isLoading}
         >
           Previous
         </button>
@@ -39,6 +46,7 @@ const Pagination = memo(
             key={page}
             className={`pagination-btn ${page === currentPage ? "active" : ""}`}
             onClick={() => goToPage(page)}
+            disabled={isLoading}
           >
             {page}
           </button>
@@ -47,9 +55,9 @@ const Pagination = memo(
         <button
           className="pagination-btn"
           onClick={goToNextPage}
-          disabled={currentPage === totalPages}
+          disabled={currentPage === totalPages || isLoading}
         >
-          Next
+          {isLoading ? "Loading..." : "Next"}
         </button>
       </div>
     );

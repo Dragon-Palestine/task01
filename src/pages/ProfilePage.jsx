@@ -1,14 +1,28 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { useEmployeeContext } from "../context/EmployeeContext";
-import { useTheme } from "../context/ThemeContext";
+import { useDispatch, useSelector } from "react-redux";
+import { toggleTheme } from "../features/ui/uiSlice";
+import {
+  selectEmployeesData,
+  selectEmployeesState,
+} from "../features/employees/employeesSlice";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { LOADING_MESSAGES } from "../constants";
 
 const ProfilePage = React.memo(() => {
   const { id } = useParams();
-  const { employees, isLoading } = useEmployeeContext();
-  const { isDarkMode, toggleTheme } = useTheme();
+  const dispatch = useDispatch();
+  const employees = useSelector(selectEmployeesData);
+  const { isPageLoading, isMutating } = useSelector(selectEmployeesState);
+  const isLoading = isPageLoading || isMutating;
+  const isDarkMode = useSelector((state) => state.ui.isDarkMode);
+
+  useEffect(() => {
+    document.documentElement.setAttribute(
+      "data-theme",
+      isDarkMode ? "dark" : "light",
+    );
+  }, [isDarkMode]);
 
   // Find employee by ID
   const employee = useMemo(() => {
@@ -43,7 +57,7 @@ const ProfilePage = React.memo(() => {
               </Link>
               <button
                 className="btn theme-toggle"
-                onClick={toggleTheme}
+                onClick={() => dispatch(toggleTheme())}
                 title={themeTitle}
               >
                 {isDarkMode ? "☀️" : "🌙"}
@@ -66,7 +80,7 @@ const ProfilePage = React.memo(() => {
             </Link>
             <button
               className="btn theme-toggle"
-              onClick={toggleTheme}
+              onClick={() => dispatch(toggleTheme())}
               title={themeTitle}
             >
               {isDarkMode ? "☀️" : "🌙"}

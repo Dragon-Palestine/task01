@@ -1,8 +1,24 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
-import { useEmployeeContext } from "../context/EmployeeContext";
-import { useTheme } from "../context/ThemeContext";
+import { useDispatch, useSelector, shallowEqual } from "react-redux";
+import {
+  addEmployeeAsync,
+  changePageAsync,
+  deleteAllEmployeesAsync,
+  deleteEmployeeAsync,
+  generateEmployeesAsync,
+  selectCurrentPage,
+  selectFilters,
+  selectFilteredEmployees,
+  selectIsMutating,
+  selectIsPageLoading,
+  selectLoadingMessage,
+  selectPaginatedEmployees,
+  selectPaginationInfo,
+  selectEmployeesData,
+  updateEmployeeAsync,
+} from "../features/employees/employeesSlice";
+import { toggleTheme } from "../features/ui/uiSlice";
 import { useEmployeeFilters } from "../hooks/useEmployeeFilters";
-import { useEmployeeOperations } from "../hooks/useEmployeeOperations";
 import { useModalManager } from "../hooks/useEmployeeOperations";
 import { useInitialLoading } from "../hooks/useEmployeeOperations";
 import { useUrlSync } from "../hooks/useUrlSync";
@@ -14,26 +30,41 @@ import Modal from "../components/Modal";
 import EmployeeForm from "../components/EmployeeForm";
 // Removed unused imports
 import { LOADING_MESSAGES } from "../constants";
+import { confirmDelete, confirmDeleteAll } from "../utils/apiUtils";
 
 const HomePage = React.memo(() => {
+  const dispatch = useDispatch();
   const {
-    data: employees, // Use 'data' as the state property name as requested
-    currentPage,
+    employees,
     filters,
-    isLoading,
     filteredEmployees,
     paginatedEmployees,
     paginationInfo,
-    addEmployee,
-    updateEmployee,
-    deleteEmployee,
-    deleteAllEmployees,
-    generateEmployees,
-    setFilter,
-    changePage,
-  } = useEmployeeContext();
+    isMutating,
+    isPageLoading,
+    loadingMessage,
+    isDarkMode,
+  } = useSelector(
+    (state) => ({
+      employees: selectEmployeesData(state),
+      filters: selectFilters(state),
+      filteredEmployees: selectFilteredEmployees(state),
+      paginatedEmployees: selectPaginatedEmployees(state),
+      paginationInfo: selectPaginationInfo(state),
+      isMutating: selectIsMutating(state),
+      isPageLoading: selectIsPageLoading(state),
+      loadingMessage: selectLoadingMessage(state),
+      isDarkMode: state.ui.isDarkMode,
+    }),
+    shallowEqual,
+  );
 
-  const { isDarkMode, toggleTheme } = useTheme();
+  useEffect(() => {
+    document.documentElement.setAttribute(
+      "data-theme",
+      isDarkMode ? "dark" : "light",
+    );
+  }, [isDarkMode]);
 
   // URL synchronization
   const {
@@ -48,21 +79,6 @@ const HomePage = React.memo(() => {
 
   // Keep only necessary hooks and unify logic
   const { departments } = useEmployeeFilters(employees);
-
-  const {
-    isLoading: operationsLoading,
-    addEmployee: handleAddEmployee,
-    updateEmployee: handleUpdateEmployee,
-    deleteEmployee: handleDeleteEmployee,
-    deleteAllEmployees: handleDeleteAllEmployees,
-    generateEmployees: handleGenerateEmployees,
-  } = useEmployeeOperations({
-    addEmployee,
-    updateEmployee,
-    deleteEmployee,
-    deleteAllEmployees,
-    generateEmployees,
-  });
 
   const {
     showModal,
@@ -93,21 +109,21 @@ const HomePage = React.memo(() => {
     async (formData) => {
       if (editingEmployee) {
         // Ensure the ID is attached to the form data for the reducer to find the match
-        await handleUpdateEmployee({ ...formData, id: editingEmployee.id });
+        await dispatch(updateEmployeeAsync({ ...formData, id: editingEmployee.id }));
       } else {
-        await handleAddEmployee(formData);
+        await dispatch(addEmployeeAsync(formData));
       }
       closeModal(); // Close modal after successful async operation
     },
-    [editingEmployee, handleUpdateEmployee, handleAddEmployee, closeModal],
+    [editingEmployee, dispatch, closeModal],
   );
 
   // Simplified Page change
   const handlePageChange = useCallback(
     (page) => {
-      changePage(page);
+      dispatch(changePageAsync(page));
     },
-    [changePage],
+    [dispatch],
   );
 
   const handleEditEmployee = useCallback(
@@ -115,6 +131,15 @@ const HomePage = React.memo(() => {
       openEditModal(employee);
     },
     [openEditModal],
+  );
+
+  const handleDeleteEmployee = useCallback(
+    async (id) => {
+      if (confirmDelete("Are you sure you want to delete this employee?")) {
+        await dispatch(deleteEmployeeAsync(id));
+      }
+    },
+    [dispatch],
   );
 
   const handleAddNewEmployee = useCallback(() => {
@@ -126,13 +151,14 @@ const HomePage = React.memo(() => {
   }, [closeModal]);
 
   const handleDeleteAllWrapper = useCallback(async () => {
-    // Pass the count to confirmDeleteAll helper
-    await handleDeleteAllEmployees(employeeCount);
-  }, [handleDeleteAllEmployees, employeeCount]);
+    if (confirmDeleteAll(employeeCount)) {
+      await dispatch(deleteAllEmployeesAsync());
+    }
+  }, [dispatch, employeeCount]);
 
   const handleGenerateEmployeesWrapper = useCallback(async () => {
-    await handleGenerateEmployees(generateCount);
-  }, [handleGenerateEmployees, generateCount]);
+    await dispatch(generateEmployeesAsync(Number(generateCount)));
+  }, [dispatch, generateCount]);
 
   // Filter handlers with URL sync
   const handleSearchChange = useCallback(
@@ -172,7 +198,7 @@ const HomePage = React.memo(() => {
   );
 
   // Unified skeleton display condition
-  const shouldShowSkeleton = isLoading || isInitialLoading;
+  const shouldShowSkeleton = isInitialLoading;
 
   return (
     <div className="home-page">
@@ -187,7 +213,7 @@ const HomePage = React.memo(() => {
             </div>
             <button
               className="btn theme-toggle"
-              onClick={toggleTheme}
+              onClick={() => dispatch(toggleTheme())}
               title={themeTitle}
             >
               {isDarkMode ? "☀️" : "🌙"}
@@ -215,15 +241,15 @@ const HomePage = React.memo(() => {
               <button
                 className="btn btn-success generate-btn"
                 onClick={handleGenerateEmployeesWrapper}
-                disabled={isLoading}
+                disabled={isMutating}
               >
-                {isLoading ? "Generating..." : "Generate"}
+                {isMutating && loadingMessage ? loadingMessage : "Generate"}
               </button>
             </div>
             <button
               className="btn btn-danger delete-all-btn"
               onClick={handleDeleteAllWrapper}
-              disabled={isLoading || employeeCount === 0}
+              disabled={isMutating || employeeCount === 0}
             >
               Delete All Employees
             </button>
@@ -243,13 +269,13 @@ const HomePage = React.memo(() => {
           isOpen={showModal}
           onClose={handleCloseModal}
           title={modalTitle}
-          isLoading={isLoading}
+          isLoading={isMutating}
           showFooter={false}
         >
           <EmployeeForm
             employee={editingEmployee}
             onSubmit={handleFormSubmit}
-            isLoading={isLoading}
+            isLoading={isMutating}
           />
         </Modal>
 
@@ -300,6 +326,7 @@ const HomePage = React.memo(() => {
           goToPreviousPage={() =>
             handlePageChange(paginationInfo.currentPage - 1)
           }
+          isLoading={isPageLoading}
         />
       </div>
     </div>

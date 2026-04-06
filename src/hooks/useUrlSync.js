@@ -1,13 +1,21 @@
 import { useEffect, useCallback, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useEmployeeContext } from "../context/EmployeeContext";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  changePageAsync,
+  initFromUrl,
+  selectCurrentPage,
+  selectFilters,
+  setFilter,
+} from "../features/employees/employeesSlice";
 import { SEARCH_DEBOUNCE_DELAY } from "../constants";
 
 export const useUrlSync = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { initFromUrl, changePage, setFilter, currentPage, filters } =
-    useEmployeeContext();
+  const dispatch = useDispatch();
+  const currentPage = useSelector(selectCurrentPage);
+  const filters = useSelector(selectFilters);
 
   // Local state for the search input to ensure zero lag while typing
   const [localSearch, setLocalSearch] = useState(filters.search);
@@ -21,11 +29,11 @@ export const useUrlSync = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       if (localSearch !== filters.search) {
-        setFilter({ search: localSearch });
+        dispatch(setFilter({ search: localSearch }));
       }
     }, SEARCH_DEBOUNCE_DELAY);
     return () => clearTimeout(timer);
-  }, [localSearch, filters.search, setFilter]);
+  }, [localSearch, filters.search, dispatch]);
 
   // Initialize state from URL on mount
   const syncFromUrl = useCallback(() => {
@@ -34,15 +42,17 @@ export const useUrlSync = () => {
     const urlDept = searchParams.get("dept") || "";
     const urlStatus = searchParams.get("status") || "";
 
-    initFromUrl({
-      currentPage: urlPage,
-      filters: {
-        search: urlSearch,
-        department: urlDept,
-        status: urlStatus,
-      },
-    });
-  }, [searchParams, initFromUrl]);
+    dispatch(
+      initFromUrl({
+        currentPage: urlPage,
+        filters: {
+          search: urlSearch,
+          department: urlDept,
+          status: urlStatus,
+        },
+      }),
+    );
+  }, [searchParams, dispatch]);
 
   useEffect(() => {
     syncFromUrl();
@@ -84,9 +94,9 @@ export const useUrlSync = () => {
   // Programmatic navigation functions
   const goToPage = useCallback(
     (page) => {
-      changePage(page);
+      dispatch(changePageAsync(page));
     },
-    [changePage],
+    [dispatch],
   );
 
   // Update local state immediately; the useEffect above handles the global sync
@@ -96,21 +106,21 @@ export const useUrlSync = () => {
 
   const setDepartmentFilter = useCallback(
     (department) => {
-      setFilter({ department });
+      dispatch(setFilter({ department }));
     },
-    [setFilter],
+    [dispatch],
   );
 
   const setStatusFilter = useCallback(
     (status) => {
-      setFilter({ status });
+      dispatch(setFilter({ status }));
     },
-    [setFilter],
+    [dispatch],
   );
 
   const clearFilters = useCallback(() => {
-    setFilter({ search: "", department: "", status: "" });
-  }, [setFilter]);
+    dispatch(setFilter({ search: "", department: "", status: "" }));
+  }, [dispatch]);
 
   const isSearchDebouncing = localSearch !== filters.search;
 

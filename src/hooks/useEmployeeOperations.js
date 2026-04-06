@@ -12,7 +12,7 @@ import {
 
 // Custom hook for employee operations
 export const useEmployeeOperations = (operations) => {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading] = useState(false);
 
   const addEmployee = useCallback(
     async (employeeData) => {

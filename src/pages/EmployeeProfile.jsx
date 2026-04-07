@@ -1,10 +1,11 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import {
   selectEmployeesData,
   selectEmployeesState,
 } from "../features/employees/employeesSlice";
+import useSimulatedLoading from "../hooks/useSimulatedLoading";
 import LoadingSpinner from "../components/LoadingSpinner";
 
 const EmployeeProfile = () => {
@@ -13,14 +14,8 @@ const EmployeeProfile = () => {
   const data = useSelector(selectEmployeesData);
   const { isPageLoading, isMutating } = useSelector(selectEmployeesState);
 
-  // Simulate employee data fetching delay
-  const [isSimulating, setIsSimulating] = useState(false);
-
-  useEffect(() => {
-    setIsSimulating(true);
-    const timer = setTimeout(() => setIsSimulating(false), 500);
-    return () => clearTimeout(timer);
-  }, [id]);
+  // Use the custom hook to simulate fetching delay when the ID changes
+  const isSimulating = useSimulatedLoading([id]);
 
   const isLoading = isPageLoading || isMutating || isSimulating;
 

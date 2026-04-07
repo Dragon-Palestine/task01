@@ -21,6 +21,7 @@ import { toggleTheme } from "../features/ui/uiSlice";
 import { useEmployeeFilters } from "../hooks/useEmployeeFilters";
 import { useModalManager } from "../hooks/useEmployeeOperations";
 import { useInitialLoading } from "../hooks/useEmployeeOperations";
+import useSimulatedLoading from "../hooks/useSimulatedLoading";
 import { useUrlSync } from "../hooks/useUrlSync";
 import EmployeeCard from "../components/EmployeeCard";
 import FilterBar from "../components/FilterBar";
@@ -91,14 +92,11 @@ const HomePage = React.memo(() => {
 
   const isInitialLoading = useInitialLoading();
 
-  // Local state to simulate API delay when searching or fetching
-  const [isSimulating, setIsSimulating] = useState(false);
-
-  useEffect(() => {
-    setIsSimulating(true);
-    const timer = setTimeout(() => setIsSimulating(false), 500);
-    return () => clearTimeout(timer);
-  }, [filters, paginationInfo.currentPage]);
+  // Use the custom hook to simulate API delay when searching or paginating
+  const isSimulating = useSimulatedLoading([
+    filters,
+    paginationInfo.currentPage,
+  ]);
 
   const [generateCount, setGenerateCount] = useState(10);
 

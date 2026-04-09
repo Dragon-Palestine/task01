@@ -8,6 +8,7 @@ import ToastContainer from "./components/ToastContainer";
 // Lazy load components for performance
 const HomePage = lazy(() => import("./pages/HomePage"));
 const EmployeeProfile = lazy(() => import("./pages/EmployeeProfile"));
+const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 
 function App() {
   return (
@@ -17,7 +18,10 @@ function App() {
         <Router>
           <Routes>
             <Route path="/" element={<HomePage />} />
-            <Route path="/employee/:id" element={<EmployeeProfile />} />
+            <Route path="/employee/:id" element={<EmployeeProfile />} />{" "}
+            {/* Specific route for employee profile */}
+            <Route path="*" element={<NotFoundPage />} />{" "}
+            {/* Catch-all for 404 */}
           </Routes>
         </Router>
       </Suspense>

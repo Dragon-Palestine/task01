@@ -1,79 +1,15 @@
-import React, { useState, useCallback } from "react";
-import {
-  confirmDelete,
-  confirmDeleteAll,
-  showAlert,
-} from "../utils/apiUtils";
-import {
-  MAX_GENERATE_COUNT,
-  ERROR_MESSAGES,
-  API_SIMULATION_DELAYS,
-} from "../constants";
+import { useState, useCallback, useEffect } from "react";
+import { API_SIMULATION_DELAYS } from "../constants";
 
 // Custom hook for employee operations
-export const useEmployeeOperations = (operations) => {
-  const [isLoading] = useState(false);
-
-  const addEmployee = useCallback(
-    async (employeeData) => {
-      await operations.addEmployee(employeeData);
-    },
-    [operations],
-  );
-
-  const updateEmployee = useCallback(
-    async (employeeData) => {
-      await operations.updateEmployee(employeeData);
-    },
-    [operations],
-  );
-
-  const deleteEmployee = useCallback(
-    async (id) => {
-      if (confirmDelete("Are you sure you want to delete this employee?")) {
-        await operations.deleteEmployee(id);
-      }
-    },
-    [operations],
-  );
-
-  const deleteAllEmployees = useCallback(
-    async (count) => {
-      if (confirmDeleteAll(count)) {
-        await operations.deleteAllEmployees();
-      }
-    },
-    [operations],
-  );
-
-  const generateEmployees = useCallback(
-    async (count) => {
-      const numCount = parseInt(count);
-      if (isNaN(numCount) || numCount <= 0 || numCount > MAX_GENERATE_COUNT) {
-        showAlert(ERROR_MESSAGES.GENERATE_COUNT_INVALID);
-        return;
-      }
-
-      await operations.generateEmployees(numCount);
-    },
-    [operations],
-  );
-
-  return {
-    isLoading,
-    addEmployee,
-    updateEmployee,
-    deleteEmployee,
-    deleteAllEmployees,
-    generateEmployees,
-  };
-};
+// This hook was previously unused in HomePage.jsx and its logic was moved directly into HomePage.
+// It's being removed for code cleanliness.
 
 // Custom hook for modal management
 export const useModalManager = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
-  const [isPreparingModal] = useState(false);
+  // isPreparingModal was unused and has been removed.
 
   const openAddModal = useCallback(() => {
     setEditingEmployee(null);
@@ -93,7 +29,6 @@ export const useModalManager = () => {
   return {
     showModal,
     editingEmployee,
-    isPreparingModal,
     openAddModal,
     openEditModal,
     closeModal,
@@ -104,9 +39,9 @@ export const useModalManager = () => {
 export const useInitialLoading = (
   delay = API_SIMULATION_DELAYS.INITIAL_LOAD,
 ) => {
-  const [isInitialLoading, setIsInitialLoading] = React.useState(true);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const timer = setTimeout(() => {
       setIsInitialLoading(false);
     }, delay);
@@ -115,4 +50,19 @@ export const useInitialLoading = (
   }, [delay]);
 
   return isInitialLoading;
+};
+
+// Custom hook to simulate a loading delay whenever specific dependencies change.
+// Moved from useSimulatedLoading.js to centralize hooks.
+export const useSimulatedLoading = (dependencies, delay = 500) => {
+  const [isSimulating, setIsSimulating] = useState(false);
+
+  useEffect(() => {
+    setIsSimulating(true);
+    const timer = setTimeout(() => setIsSimulating(false), delay);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, dependencies);
+
+  return isSimulating;
 };

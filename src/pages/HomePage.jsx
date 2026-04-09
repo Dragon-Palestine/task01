@@ -19,9 +19,11 @@ import {
 } from "../features/employees/employeesSlice";
 import { toggleTheme } from "../features/ui/uiSlice";
 import { useEmployeeFilters } from "../hooks/useEmployeeFilters";
-import { useModalManager } from "../hooks/useEmployeeOperations";
-import { useInitialLoading } from "../hooks/useEmployeeOperations";
-import useSimulatedLoading from "../hooks/useSimulatedLoading";
+import {
+  useModalManager,
+  useInitialLoading,
+  useSimulatedLoading, // Import useSimulatedLoading from the unified file
+} from "../hooks/useEmployeeOperations";
 import { useUrlSync } from "../hooks/useUrlSync";
 import EmployeeCard from "../components/EmployeeCard";
 import FilterBar from "../components/FilterBar";
@@ -85,7 +87,6 @@ const HomePage = React.memo(() => {
   const {
     showModal,
     editingEmployee,
-    isPreparingModal,
     openAddModal,
     openEditModal,
     closeModal,
@@ -216,7 +217,22 @@ const HomePage = React.memo(() => {
   }, [dispatch, employeeCount]);
 
   const handleGenerateEmployeesWrapper = useCallback(async () => {
-    await dispatch(generateEmployeesAsync(Number(generateCount)));
+    try {
+      await dispatch(generateEmployeesAsync(Number(generateCount))).unwrap();
+      dispatch(
+        addNotification({
+          message: `Successfully generated ${generateCount} employees!`,
+          type: "success",
+        }),
+      );
+    } catch (error) {
+      dispatch(
+        addNotification({
+          message: "Failed to generate employees.",
+          type: "error",
+        }),
+      );
+    }
   }, [dispatch, generateCount]);
 
   // Filter handlers with URL sync

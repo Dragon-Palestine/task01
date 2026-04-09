@@ -38,7 +38,9 @@ const EmployeeProfile = () => {
       <div className="not-found">
         <h1>404</h1>
         <p>Employee Not Found</p>
-        <Link to="/" className="btn primary">Back</Link>
+        <Link to="/" className="btn primary">
+          Back
+        </Link>
       </div>
     );
   }
@@ -100,7 +102,7 @@ const EmployeeProfile = () => {
           padding: 25px;
         }
 
-        /* ✅ تم إصلاح المحاذاة هنا */
+        /* ✅ Alignment fixed here */
         .header {
           display: flex;
           align-items: flex-start;
@@ -123,7 +125,7 @@ const EmployeeProfile = () => {
           flex-shrink: 0;
         }
 
-        /* ✅ الحل الحقيقي هون */
+        /* ✅ The actual fix is here */
         .info {
           display: flex;
           flex-direction: column;
@@ -211,7 +213,6 @@ const EmployeeProfile = () => {
 
       <div className="page">
         <div className="container">
-
           {/* Back */}
           <div className="top">
             <button onClick={() => navigate("/")} className="back-btn">
@@ -224,14 +225,20 @@ const EmployeeProfile = () => {
             <div className="cover"></div>
 
             <div className="content">
-
               <div className="header">
                 <div className="avatar">
                   {employee.name.charAt(0).toUpperCase()}
                 </div>
 
                 <div className="info">
-                  <div className="name" style={{ fontSize: "26px", fontWeight: "bold" ,color:"white"}}>
+                  <div
+                    className="name"
+                    style={{
+                      fontSize: "26px",
+                      fontWeight: "bold",
+                      color: "white",
+                    }}
+                  >
                     {employee.name}
                   </div>
 
@@ -259,10 +266,8 @@ const EmployeeProfile = () => {
                   <div className="value">EMP-{employee.id}</div>
                 </div>
               </div>
-
             </div>
           </div>
-
         </div>
       </div>
     </>

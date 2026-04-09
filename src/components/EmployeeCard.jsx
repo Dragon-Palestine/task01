@@ -6,7 +6,8 @@ const EmployeeCard = memo(({ employee, onEdit, onDelete }) => {
 
   return (
     <div
-      className="employee-card group cursor-pointer"
+      className="employee-card group"
+      style={{ cursor: "pointer" }}
       onClick={() => navigate(`/employee/${employee.id}`)}
     >
       <div className="card-header">

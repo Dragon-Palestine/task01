@@ -29,6 +29,7 @@ import Pagination from "../components/Pagination";
 import SkeletonLoader from "../components/SkeletonLoader";
 import Modal from "../components/Modal";
 import EmployeeForm from "../components/EmployeeForm";
+import { addNotification } from "../features/notifications/notificationSlice";
 // Removed unused imports
 import { LOADING_MESSAGES } from "../constants";
 import { confirmDelete, confirmDeleteAll } from "../utils/apiUtils";
@@ -114,15 +115,35 @@ const HomePage = React.memo(() => {
   // Unified form submission handler to ensure modal closes on success
   const handleFormSubmit = useCallback(
     async (formData) => {
-      if (editingEmployee) {
-        // Ensure the ID is attached to the form data for the reducer to find the match
-        await dispatch(
-          updateEmployeeAsync({ ...formData, id: editingEmployee.id }),
+      try {
+        if (editingEmployee) {
+          await dispatch(
+            updateEmployeeAsync({ ...formData, id: editingEmployee.id }),
+          ).unwrap();
+          dispatch(
+            addNotification({
+              message: "Employee updated successfully!",
+              type: "success",
+            }),
+          );
+        } else {
+          await dispatch(addEmployeeAsync(formData)).unwrap();
+          dispatch(
+            addNotification({
+              message: "Employee added successfully!",
+              type: "success",
+            }),
+          );
+        }
+        closeModal();
+      } catch (error) {
+        dispatch(
+          addNotification({
+            message: "Failed to save employee data.",
+            type: "error",
+          }),
         );
-      } else {
-        await dispatch(addEmployeeAsync(formData));
       }
-      closeModal(); // Close modal after successful async operation
     },
     [editingEmployee, dispatch, closeModal],
   );
@@ -144,8 +165,24 @@ const HomePage = React.memo(() => {
 
   const handleDeleteEmployee = useCallback(
     async (id) => {
-      if (confirmDelete("Are you sure you want to delete this employee?")) {
-        await dispatch(deleteEmployeeAsync(id));
+      if (!confirmDelete("Are you sure you want to delete this employee?")) {
+        return;
+      }
+      try {
+        await dispatch(deleteEmployeeAsync(id)).unwrap();
+        dispatch(
+          addNotification({
+            message: "Employee deleted successfully!",
+            type: "success",
+          }),
+        );
+      } catch (error) {
+        dispatch(
+          addNotification({
+            message: "Failed to delete employee.",
+            type: "error",
+          }),
+        );
       }
     },
     [dispatch],
@@ -160,8 +197,21 @@ const HomePage = React.memo(() => {
   }, [closeModal]);
 
   const handleDeleteAllWrapper = useCallback(async () => {
-    if (confirmDeleteAll(employeeCount)) {
-      await dispatch(deleteAllEmployeesAsync());
+    if (!confirmDeleteAll(employeeCount)) {
+      return;
+    }
+    try {
+      await dispatch(deleteAllEmployeesAsync()).unwrap();
+      dispatch(
+        addNotification({ message: "All employees deleted!", type: "success" }),
+      );
+    } catch (error) {
+      dispatch(
+        addNotification({
+          message: "Failed to delete all employees.",
+          type: "error",
+        }),
+      );
     }
   }, [dispatch, employeeCount]);
 
